@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/verveWireless/vmetrics/vmetrics"
+	"github.com/VerveWireless/vmetrics/vmetrics"
 	"time"
 )
 
