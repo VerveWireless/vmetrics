@@ -1,4 +1,4 @@
-module github.com/VerveWireless/vmetrics
+module github.com/pubnative/vmetrics
 
 go 1.19
 

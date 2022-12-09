@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	DefaultRegistry.Config.KafkaConfig.brokerList = []string{"localhost:9092"}
+	DefaultRegistry.Config.KafkaConfig.BrokerList = []string{"localhost:9092"}
 
 	config := sarama.NewConfig()
 	config.Net.DialTimeout = 10 * time.Second
@@ -22,12 +22,12 @@ func init() {
 	config.Producer.Return.Successes = true
 
 	DefaultRegistry.Config.KafkaConfig.Topic = "v-metrics"
-	DefaultRegistry.Config.KafkaConfig.config = config
+	DefaultRegistry.Config.KafkaConfig.Config = config
 
 	DefaultRegistry.Config.Cycle = time.Second
 
 	producer, err := sarama.NewSyncProducer(
-		DefaultRegistry.Config.KafkaConfig.brokerList,
+		DefaultRegistry.Config.KafkaConfig.BrokerList,
 		config)
 	if err != nil {
 		fmt.Println("Failed to start Sarama producer:", err)
@@ -39,9 +39,9 @@ func init() {
 }
 
 type KafkaConfig struct {
-	brokerList []string
-	config     *sarama.Config
-	Topic string
+	BrokerList []string
+	Config     *sarama.Config
+	Topic      string
 }
 
 type RegistryConfig struct {
