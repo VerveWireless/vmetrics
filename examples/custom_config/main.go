@@ -4,7 +4,7 @@ package main
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
-	"github.com/pubnative/vmetrics/vmetrics"
+	"github.com/VerveWireless/vmetrics/vmetrics"
 	"log"
 	"os"
 	"time"
@@ -44,6 +44,7 @@ func init() {
 	}
 	vmetrics.DefaultRegistry = vmetrics.NewRegistry(&vrc, log.New(os.Stdout,"", log.LstdFlags))
 	vmetrics.Register(personMetric)
+
 }
 
 type Person struct {
