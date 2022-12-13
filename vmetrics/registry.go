@@ -26,7 +26,8 @@ func (bl *BrokerList) delete(selector string) {
 }
 
 func init() {
-	var brokers BrokerList = strings.Split(os.Getenv("KAFKA_BROKER_HOSTS"), ",")
+	//var brokers BrokerList = strings.Split(os.Getenv("KAFKA_BROKER_HOSTS"), ",")
+	var brokers BrokerList = strings.Split(os.Getenv("$KAFKA_2_BROKER_HOSTS"), ",")
 	brokers.delete("")
 
 	if len(brokers) <= 0 {
