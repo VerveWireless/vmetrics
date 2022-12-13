@@ -1,7 +1,6 @@
 package vmetrics
 
 import (
-	"fmt"
 	"github.com/Shopify/sarama"
 	"log"
 	"os"
@@ -49,12 +48,12 @@ func init() {
 		DefaultRegistry.Config.KafkaConfig.BrokerList,
 		config)
 	if err != nil {
-		fmt.Println("Failed to start Sarama producer:", err)
-		os.Exit(1)
+		DefaultRegistry.Logger.Println(err)
 	}
 	DefaultRegistry.Producer = producer
-
-	DefaultRegistry.Start()
+	if err == nil {
+		DefaultRegistry.Start()
+	}
 }
 
 type KafkaConfig struct {
