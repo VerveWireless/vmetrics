@@ -11,6 +11,7 @@ var (
 )
 
 func init() {
+	vmetrics.DefaultRegistry.Config.KafkaConfig.BrokerList = []string{"localhost:9093"}
 	vmetrics.Register(personMetric)
 }
 

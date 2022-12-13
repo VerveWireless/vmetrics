@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -13,8 +14,26 @@ var (
 	DefaultRegistry = NewRegistry(&RegistryConfig{}, log.New(os.Stdout, "v-metric ", log.LstdFlags))
 )
 
+type BrokerList []string
+
+func (bl *BrokerList) delete(selector string) {
+	var r BrokerList
+	for _, str := range *bl {
+		if str != selector {
+			r = append(r, str)
+		}
+	}
+	*bl = r
+}
+
 func init() {
-	DefaultRegistry.Config.KafkaConfig.BrokerList = []string{"localhost:9092"}
+	var brokers BrokerList = strings.Split(os.Getenv("KAFKA_BROKER_HOSTS"), ",")
+	brokers.delete("")
+
+	if len(brokers) <= 0 {
+		brokers = []string{"localhost:9092"}
+	}
+	DefaultRegistry.Config.KafkaConfig.BrokerList = brokers
 
 	config := sarama.NewConfig()
 	config.Net.DialTimeout = 10 * time.Second
@@ -46,21 +65,21 @@ type KafkaConfig struct {
 
 type RegistryConfig struct {
 	KafkaConfig
-	Cycle    time.Duration
+	Cycle time.Duration
 }
 
 type Registry struct {
-	Metrics        []Metric
-	Config *RegistryConfig
+	Metrics  []Metric
+	Config   *RegistryConfig
 	Producer sarama.SyncProducer
-	Logger *log.Logger
+	Logger   *log.Logger
 }
 
 func NewRegistry(config *RegistryConfig, logger *log.Logger) *Registry {
 	return &Registry{
-		Metrics:        make([]Metric, 0),
-		Config: config,
-		Logger: logger,
+		Metrics: make([]Metric, 0),
+		Config:  config,
+		Logger:  logger,
 	}
 }
 
@@ -90,7 +109,7 @@ func (r *Registry) writeToKafka(messages []string) {
 	for _, message := range messages {
 		msg := &sarama.ProducerMessage{
 			Topic: r.Config.Topic,
-			Key: sarama.StringEncoder(strconv.FormatInt(time.Now().UnixNano(), 10)),
+			Key:   sarama.StringEncoder(strconv.FormatInt(time.Now().UnixNano(), 10)),
 			Value: sarama.StringEncoder(message),
 		}
 		pmsg = append(pmsg, msg)
