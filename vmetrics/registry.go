@@ -5,12 +5,11 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
 var (
-	DefaultRegistry = NewRegistry(&RegistryConfig{}, log.New(os.Stdout, "v-metric ", log.LstdFlags))
+	DefaultRegistry *Registry
 )
 
 type BrokerList []string
@@ -25,47 +24,44 @@ func (bl *BrokerList) delete(selector string) {
 	*bl = r
 }
 
-func init() {
-	//var brokers BrokerList = strings.Split(os.Getenv("KAFKA_BROKER_HOSTS"), ",")
-	var brokers BrokerList = strings.Split(os.Getenv("$KAFKA_2_BROKER_HOSTS"), ",")
-	brokers.delete("")
+func SetupDefaultRegistry(brokers []string, topic string, logger *log.Logger) {
+	if logger == nil {
+		logger = log.New(os.Stdout, "v-metrics: ", log.LstdFlags)
+	}
+	DefaultRegistry = NewRegistry(&RegistryConfig{}, logger)
 
 	if len(brokers) <= 0 {
-		brokers = []string{"localhost:9092"}
+		logger.Fatal("Kafka brokers should be specified")
 	}
-	DefaultRegistry.Config.KafkaConfig.BrokerList = brokers
+	DefaultRegistry.Config.BrokerList = brokers
 
-	config := sarama.NewConfig()
-	config.Net.DialTimeout = 10 * time.Second
-	config.Version = sarama.V1_0_0_0
-	config.Producer.Return.Successes = true
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Net.DialTimeout = 10 * time.Second
+	saramaConfig.Version = sarama.V1_0_0_0
+	saramaConfig.Producer.Return.Successes = true
 
-	DefaultRegistry.Config.KafkaConfig.Topic = "v-metrics"
-	DefaultRegistry.Config.KafkaConfig.Config = config
+	DefaultRegistry.Config.Topic = topic
 
 	DefaultRegistry.Config.Cycle = time.Second
 
 	producer, err := sarama.NewSyncProducer(
-		DefaultRegistry.Config.KafkaConfig.BrokerList,
-		config)
+		DefaultRegistry.Config.BrokerList,
+		saramaConfig)
 	if err != nil {
 		DefaultRegistry.Logger.Println(err)
 	}
 	DefaultRegistry.Producer = producer
-	if err == nil {
+	if err != nil {
+		logger.Println(err)
+	} else {
 		DefaultRegistry.Start()
 	}
 }
 
-type KafkaConfig struct {
-	BrokerList []string
-	Config     *sarama.Config
-	Topic      string
-}
-
 type RegistryConfig struct {
-	KafkaConfig
-	Cycle time.Duration
+	BrokerList []string
+	Topic      string
+	Cycle      time.Duration
 }
 
 type Registry struct {
