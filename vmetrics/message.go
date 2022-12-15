@@ -11,31 +11,38 @@ import (
 type Message struct {
 	Namespace string
 	Subsystem string
-	Name       string
-	messages []interface{}
+	Name      string
+	messages  []interface{}
 }
 
 func NewMessage(namespace, subsystem, name string) *Message {
 	return &Message{
 		Namespace: namespace,
 		Subsystem: subsystem,
-		Name:       name,
-		messages: make([]interface{}, 0),
+		Name:      name,
+		messages:  make([]interface{}, 0),
 	}
 }
 
-func toMap(intf interface{}) map[string]interface{} {
-	b, _ := json.Marshal(&intf)
+func toMap(intf interface{}) (map[string]interface{}, error) {
 	var m map[string]interface{}
-	_ = json.Unmarshal(b, &m)
-	return m
+	b, err := json.Marshal(&intf)
+	if err != nil {
+		return m, err
+	}
+	err = json.Unmarshal(b, &m)
+	return m, err
 }
 
 func (m *Message) jsonString(inf interface{}) (string, error) {
-	if reflect.ValueOf(inf).Kind() != reflect.Struct {
-		return "", errors.New("message should be type of struct")
+	kind := reflect.ValueOf(inf).Kind()
+	if kind != reflect.Struct && kind != reflect.Ptr {
+		return "", errors.New("message should be type of struct: " + reflect.ValueOf(inf).Kind().String())
 	}
-	infMap := toMap(inf)
+	infMap, err := toMap(inf)
+	if err != nil {
+		return "", errors.New("message should be type of struct: " + reflect.ValueOf(inf).Kind().String())
+	}
 	infMap["__time__"] = time.Now().UnixNano()
 	infMap["__namespace__"] = m.Namespace
 	infMap["__subsystem__"] = m.Subsystem
