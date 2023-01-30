@@ -14,16 +14,6 @@ var (
 
 type BrokerList []string
 
-func (bl *BrokerList) delete(selector string) {
-	var r BrokerList
-	for _, str := range *bl {
-		if str != selector {
-			r = append(r, str)
-		}
-	}
-	*bl = r
-}
-
 func SetupDefaultRegistry(brokers []string, topic string, logger *log.Logger) {
 	if logger == nil {
 		logger = log.New(os.Stdout, "v-metrics: ", log.LstdFlags)
