@@ -9,18 +9,12 @@ import (
 )
 
 type Message struct {
-	Namespace string
-	Subsystem string
-	Name      string
-	messages  []interface{}
+	messages []interface{}
 }
 
-func NewMessage(namespace, subsystem, name string) *Message {
+func NewMessage() *Message {
 	return &Message{
-		Namespace: namespace,
-		Subsystem: subsystem,
-		Name:      name,
-		messages:  make([]interface{}, 0),
+		messages: make([]interface{}, 0),
 	}
 }
 
@@ -44,9 +38,6 @@ func (m *Message) jsonString(inf interface{}) (string, error) {
 		return "", errors.New("message should be type of struct: " + reflect.ValueOf(inf).Kind().String())
 	}
 	infMap["__time__"] = time.Now().UnixNano()
-	infMap["__namespace__"] = m.Namespace
-	infMap["__subsystem__"] = m.Subsystem
-	infMap["__name__"] = m.Name
 	marshal, err := json.Marshal(infMap)
 	if err != nil {
 		return "", err
@@ -74,8 +65,4 @@ func (m *Message) Consume() []string {
 func (m *Message) Clear() {
 	m.messages = nil
 	m.messages = make([]interface{}, 0)
-}
-
-func (m *Message) GetName() string {
-	return m.Name
 }

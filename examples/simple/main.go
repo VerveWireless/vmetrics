@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	personMetric = vmetrics.NewMessage("yield", "bo", "persons")
+	personMetric = vmetrics.NewMessage()
 )
 
 func init() {
