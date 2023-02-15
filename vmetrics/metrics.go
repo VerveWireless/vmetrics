@@ -5,3 +5,7 @@ type Metric interface {
 	Consume() []string
 	Clear()
 }
+
+type Opts struct {
+	ConstLabels Labels
+}
