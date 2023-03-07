@@ -81,8 +81,9 @@ func (r *Registry) Start() {
 	go func() {
 		for {
 			for _, metric := range r.Metrics {
-				messages := metric.Consume()
-				go r.writeToKafka(messages)
+				//messages := metric.Consume()
+				agMessages := metric.Aggregated()
+				go r.writeToKafka(agMessages)
 				metric.Clear()
 			}
 			time.Sleep(r.Config.Cycle)

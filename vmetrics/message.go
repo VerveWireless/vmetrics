@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +21,10 @@ func NewMessage() *Message {
 
 func toMap(intf interface{}) (map[string]interface{}, error) {
 	var m map[string]interface{}
+	kind := reflect.ValueOf(intf).Kind()
+	if kind != reflect.Struct && kind != reflect.Ptr {
+		return m, errors.New("message should be type of struct: " + reflect.ValueOf(intf).Kind().String())
+	}
 	b, err := json.Marshal(&intf)
 	if err != nil {
 		return m, err
@@ -29,10 +34,6 @@ func toMap(intf interface{}) (map[string]interface{}, error) {
 }
 
 func (m *Message) jsonString(inf interface{}) (string, error) {
-	kind := reflect.ValueOf(inf).Kind()
-	if kind != reflect.Struct && kind != reflect.Ptr {
-		return "", errors.New("message should be type of struct: " + reflect.ValueOf(inf).Kind().String())
-	}
 	infMap, err := toMap(inf)
 	if err != nil {
 		return "", errors.New("message should be type of struct: " + reflect.ValueOf(inf).Kind().String())
@@ -58,6 +59,32 @@ func (m *Message) Consume() []string {
 		} else {
 			messages = append(messages, jsonString)
 		}
+	}
+	return messages
+}
+
+func (m *Message) Aggregated() []string {
+	var messages []string
+	var uniqueMap = make(map[string]int64)
+	for _, msg := range m.messages {
+		infMap, err := toMap(msg)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			var kstr = ""
+			for k := range infMap {
+				kstr += k + "_"
+			}
+			if val, ok := uniqueMap[kstr]; ok {
+				uniqueMap[kstr] = val + 1
+			} else {
+				uniqueMap[kstr] = 1
+			}
+		}
+	}
+	for msg := range uniqueMap {
+		count := strconv.Itoa(int(uniqueMap[msg]))
+		messages = append(messages, "{ \"key\": \""+msg+"\" \"count\": "+count+"}")
 	}
 	return messages
 }
