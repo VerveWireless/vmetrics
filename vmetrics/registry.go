@@ -73,6 +73,12 @@ func Register(metric Metric) {
 	DefaultRegistry.Register(metric)
 }
 
+func MustRegister(metrics ...Metric) {
+	for _, metric := range metrics {
+		DefaultRegistry.Register(metric)
+	}
+}
+
 func (r *Registry) Register(metric Metric) {
 	r.Metrics = append(r.Metrics, metric)
 }
@@ -81,7 +87,6 @@ func (r *Registry) Start() {
 	go func() {
 		for {
 			for _, metric := range r.Metrics {
-				//messages := metric.Consume()
 				agMessages := metric.Aggregated()
 				go r.writeToKafka(agMessages)
 				metric.Clear()
