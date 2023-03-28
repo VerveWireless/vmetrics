@@ -84,16 +84,25 @@ func (r *Registry) Register(metric Metric) {
 }
 
 func (r *Registry) Start() {
+	ticker := time.NewTicker(r.Config.Cycle)
+	done := make(chan bool)
 	go func() {
 		for {
-			for _, metric := range r.Metrics {
-				agMessages := metric.Aggregated()
-				go r.writeToKafka(agMessages)
-				metric.Clear()
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				for _, metric := range r.Metrics {
+					agMessages := metric.Aggregated()
+					go r.writeToKafka(agMessages)
+					metric.Clear()
+				}
 			}
-			time.Sleep(r.Config.Cycle)
 		}
 	}()
+	time.Sleep(r.Config.Cycle * 2)
+	ticker.Stop()
+	done <- true
 }
 
 func (r *Registry) writeToKafka(messages []string) {

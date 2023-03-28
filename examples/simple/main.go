@@ -24,7 +24,7 @@ type DVRS struct {
 
 func main() {
 	SomeOperation()
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 20)
 }
 
 func SomeOperation() {
